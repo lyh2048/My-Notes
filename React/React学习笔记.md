@@ -918,6 +918,328 @@ export default class App extends Component {
 }
 ```
 
+在某些情况下，我们也需要子组件向父组件传递消息：
+
+- 在vue中是通过自定义事件来完成的
+- 在React中同样是通过props传递消息，只是让父组件给子组件传递一个回调函数，在子组件中调用这个回调函数即可
+
+`子传父通信`
+
+```jsx
+import React, { Component } from 'react'
+
+
+class CntButton extends Component {
+    render() {
+        const { increment } = this.props;
+        return (
+            <div>
+                <button onClick={increment}>+1</button>
+            </div>
+        )
+    }
+}
+
+export default class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            cnt: 0
+        }
+    }
+
+    render() {
+        return (
+            <div>
+                <h2>当前计数：{this.state.cnt}</h2>
+                <button onClick={e => {this.increment()}}>+1</button>
+                <CntButton increment={e => {this.increment()}} />
+            </div>
+        )
+    }
+
+    increment() {
+        this.setState({
+            cnt: this.state.cnt + 1
+        })
+    }
+}
+
+```
+
+`组件通信案例练习`
+
+```jsx
+import React, { Component } from 'react'
+import TabControl from './TabControl'
+
+export default class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentTitle: "新款",
+            titles: ['新款', '精选', '流行']
+        }
+    }
+    
+    render() {
+        const { currentTitle, titles } = this.state;
+        return (
+            <div>
+                <TabControl itemClick={index => this.itemClick(index)} titles={titles} />
+                <h2>{currentTitle}</h2>
+            </div>
+        )
+    }
+
+    itemClick(index) {
+        console.log(index);
+        this.setState({
+            currentTitle: this.state.titles[index]
+        })
+    }
+
+}
+
+```
+
+```jsx
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+
+
+export default class TabControl extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentIndex: 0
+        }
+    }
+    render() {
+        const { titles } = this.props;
+        const { currentIndex } = this.state;
+        return (
+            <div className="tab-control">
+                {
+                    titles.map((item, index) => {
+                        return <div className={"tab-item " + (index === currentIndex ? "active" : "") } key={index} onClick={e => this.itemClick(index)}><span>{item}</span></div>
+                    })
+                }
+            </div>
+        )
+    }
+
+    itemClick(index) {
+        this.setState({
+            currentIndex: index
+        })
+        const { itemClick } = this.props;
+        itemClick(index);
+    }
+}
+
+TabControl.propTypes = {
+    titles: PropTypes.array.isRequired
+}
+
+```
+
+`效果展示`
+
+![image-20211122215853733](assets/image-20211122215853733.png)
+
+![image-20211122215907659](assets/image-20211122215907659.png)
+
+`React实现插槽slot`
+
+```jsx
+import React, { Component } from 'react'
+import NavBar from './NavBar'
+import NavBar2 from './NavBar2'
+
+export default class App extends Component {
+    render() {
+        return (
+            <div>
+                <NavBar>
+                    <span>a</span>
+                    <strong>b</strong>
+                    <a href="https://www.baidu.com" target="_blank" rel="noreferrer">百度一下</a>
+                </NavBar>
+                <NavBar2 leftSlot={<span>a</span>}
+                         centerSlot={<strong>b</strong>}
+                         rightSlot={<a href="https://www.baidu.com" target="_blank" rel="noreferrer">百度一下</a>} />
+            </div>
+        )
+    }
+}
+
+```
+
+```jsx
+import React, { Component } from 'react'
+
+export default class NavBar extends Component {
+    render() {
+        return (
+            <div className="nav-bar">
+                <div className="nav-item nav-left">
+                    {this.props.children[0]}
+                </div>
+                <div className="nav-item nav-center">
+                {this.props.children[1]}
+                </div>
+                <div className="nav-item nav-right">
+                {this.props.children[2]}
+                </div>
+            </div>
+        )
+    }
+}
+
+```
+
+```jsx
+import React, { Component } from 'react'
+
+export default class NavBar extends Component {
+    render() {
+        const { leftSlot, centerSlot, rightSlot } = this.props;
+        return (
+            <div className="nav-bar">
+                <div className="nav-item nav-left">
+                    {leftSlot}
+                </div>
+                <div className="nav-item nav-center">
+                    {centerSlot}
+                </div>
+                <div className="nav-item nav-right">
+                    {rightSlot}
+                </div>
+            </div>
+        )
+    }
+}
+
+```
+
+`跨组件通信`
+
+方式一：通过props属性自上而下（由父到子）进行传递
+
+```jsx
+import React, { Component } from 'react'
+
+function ProfileHeader(props) {
+    return (
+        <div>
+            <h2>用户昵称：{props.nickname}</h2>
+            <h2>用户等级：{props.level}</h2>
+        </div>
+    )
+}
+
+function Profile(props) {
+    return (
+        <div>
+            <ProfileHeader nickname={props.nickname} level={props.level} />
+            <ul>
+                <li>设置1</li>
+                <li>设置2</li>
+                <li>设置3</li>
+                <li>设置4</li>
+            </ul>
+        </div>
+    )
+}
+
+export default class App extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            nickname: "tom",
+            level: 100
+        }
+    }
+
+    render() {
+        const { nickname, level } = this.state;
+        return (
+            <div>
+                <Profile nickname={nickname} level={level} />
+            </div>
+        )
+    }
+}
+
+```
+
+方式二：使用Context
+
+```jsx
+import React, { Component } from 'react'
+
+// 创建Context对象
+const UserContext = React.createContext({
+    nickname: "test",
+    level: 0
+})
+
+function ProfileHeader() {
+    return (
+        <UserContext.Consumer>
+            {
+                value => {
+                    return (
+                        <div>
+                            <h2>用户昵称：{value.nickname}</h2>
+                            <h2>用户等级：{value.level}</h2>
+                        </div>
+                    )
+                }
+            }
+        </UserContext.Consumer>
+    )
+}
+
+function Profile() {
+    return (
+        <div>
+            <ProfileHeader />
+            <ul>
+                <li>设置1</li>
+                <li>设置2</li>
+                <li>设置3</li>
+                <li>设置4</li>
+            </ul>
+        </div>
+    )
+}
+
+export default class App extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            nickname: "tom",
+            level: 100
+        }
+    }
+
+    render() {
+        return (
+            <div>
+                <UserContext.Provider value={this.state}>
+                    <Profile />
+                </UserContext.Provider>
+            </div>
+        )
+    }
+}
+
+```
+
 
 
 ## AntDesign库的使用
