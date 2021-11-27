@@ -1240,13 +1240,404 @@ export default class App extends Component {
 
 ```
 
+## React中的CSS样式
 
+在组件化中选择合适的CSS解决方案应该符合以下条件：
+
+- 可以编写局部CSS
+- 可以编写动态CSS特性
+- 支持所有CSS特性
+- 编写起来简洁方便，最好符合一贯的CSS风格特点
+- ……
+
+**常见的方式：**
+
+1、内联样式
+
+内联样式是官方推荐的一种CSS样式写法
+
+style接受一个采用小驼峰命名属性的JavaScript对象，而不是CSS字符串
+
+并且可以引用state中的状态来设置相关样式
+
+```jsx
+import React, { PureComponent } from 'react'
+
+export default class App extends PureComponent {
+    render() {
+        const pStyle = {
+            color: "orange",
+            textDecoration: "underline"
+        }
+        return (
+            <div>
+                <h2 style={{fontSize: "50px", color: "red"}}>我是标题</h2>
+                <p style={pStyle}>我是一段文字描述</p>
+            </div>
+        )
+    }
+}
+
+```
+
+优点：
+
+1. 内联样式之间不会有冲突
+2. 可以动态获取当前state中的状态
+
+缺点：
+
+1. 写法上都需要使用驼峰标识
+2. 某些样式没有提示
+3. 大量的样式，代码混乱
+4. 某些样式无法编写（比如伪类/伪元素）
+
+2、普通CSS
+
+我们通常会将CSS编写到单独的文件中，之后再进行引入。
+
+这样的编写方式和普通的网页开发中编写方式是一样的，但是普通的CSS都属于全局的CSS，样式之间会相互影响。
+
+这种编写方式最大的问题是样式之间会相互层叠掉。
+
+3、CSS Modules
+
+CSS Modules并不是React特有的解决方案，而是所有使用了类似webpack配置的环境下都可以使用的。
+
+React的脚手架已经内置了CSS Modules的配置。
+
+- .css/.less/.scss等样式文件都修改为.module.css/.module.less/.module.scss等
+- 之后就可以引用并且使用了
+
+CSS Modules确实解决了局部作用域的问题，也是很多人喜欢在React中使用的一种方案。
+
+但是这种方案也有自己的缺陷：
+
+- 引用的类名，不能使用连接符
+- 所有的className都必须使用{style.className}的形式来编写
+- 不方便动态来修改某些样式，依然需要使用内联样式的方式
+
+4、CSS-in-JS
+
+CSS-in-JS是指一种模式，其中CSS由JavaScript生成而不是在外部文件中定义。
+
+目前比较流行的CSS-in-JS的库有哪些？
+
+- styled-components
+- emotion
+- glamorous
+
+安装styled-components
+
+```bash
+yarn add styled-components
+```
+
+[styled-components](https://styled-components.com/)
 
 ## AntDesign库的使用
 
-## Axios库的使用和封装
+`AntDesign` 是基于 Ant Design 设计体系的React UI组件库，主要用于研发企业级中后台产品。
+
+[Ant Design - 一套企业级 UI 设计语言和 React 组件库](https://ant.design/index-cn)
+
+安装AntDesign
+
+```bash
+yarn add antd
+```
+
+[介绍 - Ant Design (gitee.io)](https://ant-design.gitee.io/docs/spec/introduce-cn)
+
+[Ant Design of React - Ant Design (gitee.io)](https://ant-design.gitee.io/docs/react/introduce-cn)
+
+[组件总览 - Ant Design (gitee.io)](https://ant-design.gitee.io/components/overview-cn/)
+
+[资源 - Ant Design (gitee.io)](https://ant-design.gitee.io/docs/resources-cn)
+
+## Axios库的使用
+
+[Axios 中文文档 | Axios 中文网 (axios-http.cn)](https://www.axios-http.cn/)
+
+axios是目前前端使用非常广泛的网络请求库
+
+安装
+
+```bash
+yarn add axios
+```
+
+[起步 | Axios 中文文档 (axios-http.cn)](https://www.axios-http.cn/docs/intro)
+
+请求方法：
+
+```markdown
+axios.request(config)
+
+axios.get(url[, config])
+
+axios.delete(url[, config])
+
+axios.head(url[, config])
+
+axios.options(url[, config])
+
+axios.post(url[, data[, config]])
+
+axios.put(url[, data[, config]])
+
+axios.patch(url[, data[, config]])
+
+```
+
+请求配置
+
+这些是创建请求时可以用的配置选项。只有`url`是必需的，如果没有指定`method`，请求将默认使用`GET`方法。
+
+```js
+{
+  // `url` 是用于请求的服务器 URL
+  url: '/user',
+
+  // `method` 是创建请求时使用的方法
+  method: 'get', // 默认值
+
+  // `baseURL` 将自动加在 `url` 前面，除非 `url` 是一个绝对 URL。
+  // 它可以通过设置一个 `baseURL` 便于为 axios 实例的方法传递相对 URL
+  baseURL: 'https://some-domain.com/api/',
+
+  // `transformRequest` 允许在向服务器发送前，修改请求数据
+  // 它只能用与 'PUT', 'POST' 和 'PATCH' 这几个请求方法
+  // 数组中最后一个函数必须返回一个字符串， 一个Buffer实例，ArrayBuffer，FormData，或 Stream
+  // 你可以修改请求头。
+  transformRequest: [function (data, headers) {
+    // 对发送的 data 进行任意转换处理
+
+    return data;
+  }],
+
+  // `transformResponse` 在传递给 then/catch 前，允许修改响应数据
+  transformResponse: [function (data) {
+    // 对接收的 data 进行任意转换处理
+
+    return data;
+  }],
+
+  // 自定义请求头
+  headers: {'X-Requested-With': 'XMLHttpRequest'},
+
+  // `params` 是与请求一起发送的 URL 参数
+  // 必须是一个简单对象或 URLSearchParams 对象
+  params: {
+    ID: 12345
+  },
+
+  // `paramsSerializer`是可选方法，主要用于序列化`params`
+  // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
+  paramsSerializer: function (params) {
+    return Qs.stringify(params, {arrayFormat: 'brackets'})
+  },
+
+  // `data` 是作为请求体被发送的数据
+  // 仅适用 'PUT', 'POST', 'DELETE 和 'PATCH' 请求方法
+  // 在没有设置 `transformRequest` 时，则必须是以下类型之一:
+  // - string, plain object, ArrayBuffer, ArrayBufferView, URLSearchParams
+  // - 浏览器专属: FormData, File, Blob
+  // - Node 专属: Stream, Buffer
+  data: {
+    firstName: 'Fred'
+  },
+  
+  // 发送请求体数据的可选语法
+  // 请求方式 post
+  // 只有 value 会被发送，key 则不会
+  data: 'Country=Brasil&City=Belo Horizonte',
+
+  // `timeout` 指定请求超时的毫秒数。
+  // 如果请求时间超过 `timeout` 的值，则请求会被中断
+  timeout: 1000, // 默认值是 `0` (永不超时)
+
+  // `withCredentials` 表示跨域请求时是否需要使用凭证
+  withCredentials: false, // default
+
+  // `adapter` 允许自定义处理请求，这使测试更加容易。
+  // 返回一个 promise 并提供一个有效的响应 （参见 lib/adapters/README.md）。
+  adapter: function (config) {
+    /* ... */
+  },
+
+  // `auth` HTTP Basic Auth
+  auth: {
+    username: 'janedoe',
+    password: 's00pers3cret'
+  },
+
+  // `responseType` 表示浏览器将要响应的数据类型
+  // 选项包括: 'arraybuffer', 'document', 'json', 'text', 'stream'
+  // 浏览器专属：'blob'
+  responseType: 'json', // 默认值
+
+  // `responseEncoding` 表示用于解码响应的编码 (Node.js 专属)
+  // 注意：忽略 `responseType` 的值为 'stream'，或者是客户端请求
+  // Note: Ignored for `responseType` of 'stream' or client-side requests
+  responseEncoding: 'utf8', // 默认值
+
+  // `xsrfCookieName` 是 xsrf token 的值，被用作 cookie 的名称
+  xsrfCookieName: 'XSRF-TOKEN', // 默认值
+
+  // `xsrfHeaderName` 是带有 xsrf token 值的http 请求头名称
+  xsrfHeaderName: 'X-XSRF-TOKEN', // 默认值
+
+  // `onUploadProgress` 允许为上传处理进度事件
+  // 浏览器专属
+  onUploadProgress: function (progressEvent) {
+    // 处理原生进度事件
+  },
+
+  // `onDownloadProgress` 允许为下载处理进度事件
+  // 浏览器专属
+  onDownloadProgress: function (progressEvent) {
+    // 处理原生进度事件
+  },
+
+  // `maxContentLength` 定义了node.js中允许的HTTP响应内容的最大字节数
+  maxContentLength: 2000,
+
+  // `maxBodyLength`（仅Node）定义允许的http请求内容的最大字节数
+  maxBodyLength: 2000,
+
+  // `validateStatus` 定义了对于给定的 HTTP状态码是 resolve 还是 reject promise。
+  // 如果 `validateStatus` 返回 `true` (或者设置为 `null` 或 `undefined`)，
+  // 则promise 将会 resolved，否则是 rejected。
+  validateStatus: function (status) {
+    return status >= 200 && status < 300; // 默认值
+  },
+
+  // `maxRedirects` 定义了在node.js中要遵循的最大重定向数。
+  // 如果设置为0，则不会进行重定向
+  maxRedirects: 5, // 默认值
+
+  // `socketPath` 定义了在node.js中使用的UNIX套接字。
+  // e.g. '/var/run/docker.sock' 发送请求到 docker 守护进程。
+  // 只能指定 `socketPath` 或 `proxy` 。
+  // 若都指定，这使用 `socketPath` 。
+  socketPath: null, // default
+
+  // `httpAgent` and `httpsAgent` define a custom agent to be used when performing http
+  // and https requests, respectively, in node.js. This allows options to be added like
+  // `keepAlive` that are not enabled by default.
+  httpAgent: new http.Agent({ keepAlive: true }),
+  httpsAgent: new https.Agent({ keepAlive: true }),
+
+  // `proxy` 定义了代理服务器的主机名，端口和协议。
+  // 您可以使用常规的`http_proxy` 和 `https_proxy` 环境变量。
+  // 使用 `false` 可以禁用代理功能，同时环境变量也会被忽略。
+  // `auth`表示应使用HTTP Basic auth连接到代理，并且提供凭据。
+  // 这将设置一个 `Proxy-Authorization` 请求头，它会覆盖 `headers` 中已存在的自定义 `Proxy-Authorization` 请求头。
+  // 如果代理服务器使用 HTTPS，则必须设置 protocol 为`https`
+  proxy: {
+    protocol: 'https',
+    host: '127.0.0.1',
+    port: 9000,
+    auth: {
+      username: 'mikeymike',
+      password: 'rapunz3l'
+    }
+  },
+
+  // see https://axios-http.com/docs/cancellation
+  cancelToken: new CancelToken(function (cancel) {
+  }),
+
+  // `decompress` indicates whether or not the response body should be decompressed 
+  // automatically. If set to `true` will also remove the 'content-encoding' header 
+  // from the responses objects of all decompressed responses
+  // - Node only (XHR cannot turn off decompression)
+  decompress: true // 默认值
+
+}
+```
+
+响应结构
+
+一个请求的响应包含以下信息。
+
+```js
+{
+  // `data` 由服务器提供的响应
+  data: {},
+
+  // `status` 来自服务器响应的 HTTP 状态码
+  status: 200,
+
+  // `statusText` 来自服务器响应的 HTTP 状态信息
+  statusText: 'OK',
+
+  // `headers` 是服务器响应头
+  // 所有的 header 名称都是小写，而且可以使用方括号语法访问
+  // 例如: `response.headers['content-type']`
+  headers: {},
+
+  // `config` 是 `axios` 请求的配置信息
+  config: {},
+
+  // `request` 是生成此响应的请求
+  // 在node.js中它是最后一个ClientRequest实例 (in redirects)，
+  // 在浏览器中则是 XMLHttpRequest 实例
+  request: {}
+}
+```
+
+默认配置
+
+```js
+axios.defaults.baseURL = "https://httpbin.org"
+axios.defaults.timeout = 5000
+axios.defaults.headers.common["token"] = "token"
+```
+
+拦截器
+
+```js
+// 拦截器
+axios.interceptors.request.use(config => {
+  // 1. 发送请求时，页面显示loading
+  // 2. 添加token
+  // 3. 序列化操作
+  // 4. ……
+  return config;
+}, err => {
+  console.log(err);
+  return err;
+});
+
+axios.interceptors.response.use(res => {
+  return res.data;
+}, err => {
+  if (err && err.response) {
+    switch (err.response.status) {
+      case 400:
+        console.log("400");
+        break;
+      case 401:
+        console.log("401");
+        break;
+      default:
+        console.log("其他错误")
+        break;
+    }
+  }
+  return err;
+});
+```
+
+## Redux的使用
+
+
 
 ## React Hooks
+
+
 
 ## 项目的打包和部署
 
