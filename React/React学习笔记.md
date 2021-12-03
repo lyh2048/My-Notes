@@ -1633,7 +1633,72 @@ axios.interceptors.response.use(res => {
 
 ## Redux的使用
 
+Redux就是一个帮助我们管理`State`的容器。
 
+Redux是JavaScript的状态容器，提供了可预测的状态管理。
+
+三大原则：
+
+- 单一数据源
+- State是只读的
+- 使用纯函数来执行修改
+
+基本使用
+
+```js
+// 导入redux
+const redux = require('redux');
+
+const initialState = {
+    counter: 0
+}
+
+// reducer
+function reducer(state = initialState, action) {
+    switch(action.type) {
+        case "INCREMENT":
+            return {...state, counter: state.counter + 1};
+        case "DECREMENT":
+            return {...state, counter: state.counter - 1};
+        case "ADD_NUMBER":
+            return {...state, counter: state.counter + action.num};
+        case "SUB_NUMBER":
+            return {...state, counter: state.counter - action.num};
+        default:
+            return state;
+    }
+}
+
+// store
+const store = redux.createStore(reducer);
+
+// actions
+const action1 = {type: 'INCREMENT'};
+const action2 = {type: 'DECREMENT'};
+
+const action3 = {type: 'ADD_NUMBER', num: 5};
+const action4 = {type: 'SUB_NUMBER', num: 12};
+
+// 订阅store修改
+store.subscribe(() => {
+    console.log("counter:", store.getState().counter);
+});
+
+// 派发action
+store.dispatch(action1);
+store.dispatch(action2);
+store.dispatch(action3);
+store.dispatch(action4);
+
+```
+
+Redux使用流程
+
+![image-20211202220226503](assets/image-20211202220226503.png)
+
+官方文档：
+
+[React Redux | React Redux (react-redux.js.org)](https://react-redux.js.org/)
 
 ## React Hooks
 
