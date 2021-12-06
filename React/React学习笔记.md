@@ -1633,6 +1633,12 @@ axios.interceptors.response.use(res => {
 
 ## Redux的使用
 
+React中的状态管理方式：
+
+- 方式一：组件中自己的state管理；
+- 方式二：Context数据的共享状态；
+- 方式三：Redux管理应用状态；
+
 Redux就是一个帮助我们管理`State`的容器。
 
 Redux是JavaScript的状态容器，提供了可预测的状态管理。
@@ -1642,6 +1648,8 @@ Redux是JavaScript的状态容器，提供了可预测的状态管理。
 - 单一数据源
 - State是只读的
 - 使用纯函数来执行修改
+
+![image-20211204093348972](assets/image-20211204093348972.png)
 
 基本使用
 
@@ -1700,9 +1708,211 @@ Redux使用流程
 
 [React Redux | React Redux (react-redux.js.org)](https://react-redux.js.org/)
 
-## React Hooks
+## React Router的使用
+
+前端流行的三大框架都有自己的路由实现：
+
+- Angular的ngRouter
+- React的react-router
+- Vue的vue-router
+
+React Router的版本从4开始，路由不再集中在一个包中进行管理了
+
+- react-router是router的核心部分代码
+- react-router-dom是用于浏览器的
+- react-router-native是用于原生应用的
+
+安装react-router
+
+```bash
+yarn add react-router-dom
+```
+
+Router的基本使用
+
+```jsx
+import React, { PureComponent } from 'react'
+import {
+    BrowserRouter,
+    Link,
+    Route,
+    Routes
+} from 'react-router-dom';
+import Home from './pages/home';
+import About from './pages/about';
+
+export default class App extends PureComponent {
+    render() {
+        return (
+            <div>
+                <BrowserRouter>
+                    <Link exact="true" to="/">首页</Link>
+                    <Link to="/about">关于</Link>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/about" element={<About />} />
+                    </Routes>
+                </BrowserRouter>
+            </div>
+        )
+    }
+}
+
+```
+
+文档：[React Router | Docs Home (reactrouterdotcom.fly.dev)](https://reactrouterdotcom.fly.dev/docs/en/v6)
+
+## React Hooks的使用
+
+> Hook 是 React 16.8 的新增特性。它可以让你在不编写class的情况下使用state以及其他的React特性。
+
+[Hook 简介 – React (docschina.org)](https://react.docschina.org/docs/hooks-intro.html)
+
+useState的基本使用
+
+```jsx
+import React, { useState } from 'react';
+
+export default function Counter() {
+    /**
+     * Hook: useState
+     * 本身是一个函数，来自react包
+     * 参数：作用是给创建出来的状态一个默认值
+     * 返回值：数组，元素1：当前state的值；元素2：设置新的值时，使用的函数
+     */
+    const [state, setState] = useState(0);
+    return (
+        <div>
+            <h2>当前计数：{state}</h2>
+            <button onClick={e => setState(state + 1)}>+1</button>
+            <button onClick={e => setState(state - 1)}>-1</button>
+        </div>
+    )
+}
+
+```
+
+两个额外的规则：
+
+- 只能在函数最外层调用Hook，不要在循环、条件判断或者子函数中调用。
+- 只能在React的函数组件中调用Hook，不要在其他JavaScript函数中调用。
+
+复杂状态的操作
+
+```jsx
+export default function MultiHookState() {
+
+    const [count, setCount] = useState(0);
+    const [age, setAge] = useState(18);
+    const [friends, setFriends] = useState(["小明", "小狗", "小虎"]);
+    const [students, setStudents] = useState([
+        {id: 110, name: "学生1", age: 10},
+        {id: 111, name: "学生2", age: 18},
+        {id: 112, name: "学生3", age: 30},
+    ]);
+
+    function incrementAgeByIndex(index) {
+        const newStudents = [...students];
+        newStudents[index].age += 1;
+        setStudents(newStudents);
+    }
+
+    return (
+        <div>
+            <h2>当前计数：{count}</h2>
+            <button onClick={e => setCount(count + 1)}>计数 +1</button>
+            <h2>我的年龄：{age}</h2>
+            <button onClick={e => setAge(age + 1)}>年龄 +1</button>
+            <h2>好友列表：</h2>
+            <ul>
+                {
+                    friends.map((item, index) => {
+                        return <li key={index}>{item}</li>
+                    })
+                }
+            </ul>
+            <button onClick={e => {setFriends([...friends, "小老虎"])}}>添加好友</button>
+            <h2>学生列表：</h2>
+            <table border="true" cellPadding="0" cellSpacing="0" style={{width: "50%", textAlign: "center"}}>
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>姓名</th>
+                        <th>年龄</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        students.map((item, index) => {
+                            return (
+                                <tr key={item.id}>
+                                    <td>{index+1}</td>
+                                    <td>{item.name}</td>
+                                    <td>{item.age}</td>
+                                    <td><button onClick={e => incrementAgeByIndex(index)}>年龄+1</button></td>
+                                </tr>
+                            )
+                        })
+                    }
+                </tbody>
+            </table>
+        </div>
+    )
+}
+```
+
+useEffect的基本使用
+
+```jsx
+import React, { useEffect, useState } from 'react'
+
+export default function ChangeCounterTitle() {
+    const [cnt, setCnt] = useState(0);
+    useEffect(() => {
+        document.title = `计数器：${cnt}`
+    });
+
+    return (
+        <div>
+            <h2>计数器：{cnt}</h2>
+            <button onClick={e => setCnt(cnt + 1)}>+1</button>
+        </div>
+    )
+}
+
+```
+
+useContext的基本使用
+
+```jsx
+import React, { useContext } from 'react';
+import {UserContext, ThemeContext} from '../App';
+
+export default function ContextHookDemo() {
+    const user = useContext(UserContext);
+    const theme = useContext(ThemeContext);
+
+    console.log(user);
+    console.log(theme);
+
+    return (
+        <div>
+            <h2>ContextHookDemo</h2>
+        </div>
+    )
+}
+
+```
+
+useRef返回一个ref对象，返回的ref对象在组件的整个生命周期保持不变。
+
+两种最常用的ref：
+
+- 用法一：引入DOM（或者组件，但是需要是class组件）元素；
+- 用法二：保存一个数据，这个对象在整个生命周期中可以保持不变；
 
 
 
-## 项目的打包和部署
+[Hook API 索引 – React (docschina.org)](https://react.docschina.org/docs/hooks-reference.html)
 
