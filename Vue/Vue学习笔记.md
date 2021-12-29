@@ -4,8 +4,6 @@
 
 [Vue3.0](https://v3.cn.vuejs.org/)
 
-<img src="assets/logo.svg" width="30%" />
-
 ## 简介
 
 1、Vue是什么？
