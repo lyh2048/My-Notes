@@ -68,12 +68,109 @@ Range支持创建不同数据类型的数值序列。
 
 ### 读写文件
 
+1、写入文本文件
 
+```scala
+package org.example
+
+import java.io.PrintWriter
+
+object WriteFile {
+  def main(args: Array[String]): Unit = {
+    val filename = "output.txt"
+    val out = new PrintWriter(filename)
+    for (i <- 1 to 10) {
+      out.println(i + ": HelloWorld!")
+    }
+    out.close()
+  }
+}
+
+```
+
+
+
+2、读取文本文件
+
+```scala
+package org.example
+
+import scala.io.Source
+
+object ReadFile {
+  def main(args: Array[String]): Unit = {
+    val filename = "output.txt"
+    val inputFile = Source.fromFile(filename)
+    val lines = inputFile.getLines()
+    for (line <- lines) {
+      println(line)
+    }
+  }
+}
+
+```
 
 ## 控制结构
 
+### if条件表达式
+
+在Scala中，执行if语句时，会首先检查if条件是否为真，如果为真，就执行对应的语句块，如果为假，就执行下一个条件分支。
+
+和Java一样，if语句可以采用各种嵌套的形式，但是，有一点与Java不同，Scala中的if表达式的值可以赋值给变量
+
+### while循环
+
+Scala中的while循环语句和Java的类似。
+
+```scala
+var i = 9
+while (i > 0) {
+    i -= 1
+    printf("i is %d\n",i)
+}
+```
+
+### for循环
+
+Scala中的for循环语句格式如下：
+
+```scala
+for (变量 <- 表达式) 语句块
+```
+
+其中，“变量<-表达式”被称为“生成器”
+
+有时候，我们需要对结果进行进一步的处理，这时，就可以采用yield关键字，对过滤后的结果构建一个集合。
+
+```scala
+for (i <- 1 to 10 if i % 2 == 0) yield i
+```
+
+上面这种带有yield关键字的for循环，被称为“for推导式”。
+
+这个概念源自函数式编程，也就是说，通过for循环遍历一个或多个集合，对集合中的元素进行“推导”，从而计算得到新的集合，用于后续的其他处理。
+
 ## 数据结构
+
+### 数组
+
+数组是编程中经常用到的数据结构，一般包括定长数组和变长数组。
+
+定长数组，就是长度不变的数组，在Scala中使用Array进行声明。
+
+和Java不同的是，在Scala中，对数组元素的应用，是使用圆括号，而不是方括号。
+
+![image-20220104102353239](assets/image-20220104102353239.png)
+
+### 列表
+
+
 
 ## 函数式编程
 
 ## 集合操作
+
+## 参考资料
+
+[子雨大数据之Spark入门教程（Scala版](http://dblab.xmu.edu.cn/blog/spark/)
+
