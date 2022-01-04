@@ -39,4 +39,5 @@
 ## 大数据
 
 - [大数据技术原理与应用](BigData/大数据技术原理与应用.md)
+- [快学Scala](BigData/快学Scala.md)
 
