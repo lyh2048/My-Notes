@@ -30,7 +30,7 @@
 
 ## Java
 
-- [Java 8](Java/Java 8.md)
+- [Java 8](Java/Java8.md)
 
 ## Go
 
