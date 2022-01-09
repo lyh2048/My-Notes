@@ -7,6 +7,7 @@
 ## 数据结构与算法
 
 - [LeetCode](数据结构与算法/LeetCode.md)
+- [Fisher–Yates shuffle 洗牌算法](数据结构与算法/Fisher–Yates洗牌算法.md)
 
 ## 操作系统
 
@@ -46,3 +47,4 @@
 - [快学Scala](BigData/快学Scala.md)
 
 ## 中间件
+
