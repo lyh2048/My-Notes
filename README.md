@@ -31,6 +31,8 @@
 
 ## Java
 
+- [Java基础](Java/Java基础.md)
+
 - [Java 8](Java/Java8.md)
 
 ## Go
@@ -47,4 +49,14 @@
 - [快学Scala](BigData/快学Scala.md)
 
 ## 中间件
+
+
+
+## 项目
+
+- [一个超轻量型 HTTP Server](https://github.com/lyh2048/tiny_httpd_study)
+- [使用C语言实现LRU缓存](https://github.com/lyh2048/LRUCache)
+- [哔哩哔哩视频下载工具](https://github.com/lyh2048/bilibili_video)
+
+- [基于Spring Boot的博客系统](https://github.com/lyh2048/SimpleBlog)
 
