@@ -727,7 +727,173 @@ public class RedisTestController {
 }
 ```
 
+## 事务和锁机制
 
+Redis事务是一个单独的隔离操作：事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。
+
+Redis事务的主要作用就是串联多个命令防止别的命令插队。
+
+![image-20220116184845256](assets/image-20220116184845256.png)
+
+组队中某个命令出现了报告错误，执行时整个的所有队列都会被取消。
+
+如果执行阶段某个命令报出了错误，则只有报错的命令不会被执行，而其他命令都会执行，不会回滚。
+
+事务冲突的解决方法：使用锁机制（悲观锁、乐观锁）
+
+watch key [key ...]
+
+在执行multi之前，先执行watch key1 [key2]，可以监视一个（或多个）key，如果在事务执行之前这个（或这些）key被其他命令所改动，那么事务将被打断。
+
+unwatch：取消watch命令对所有key的监视
+
+Redis事务三特性
+
+- 单独的隔离操作
+- 没有隔离级别的概念
+- 不保证原子性
+
+工具ab
+
+工具ab安装（CentOS7）：
+
+```bash
+yum install httpd-tools
+```
+
+CentOS6 默认安装
+
+参数：
+
+-n：次数
+
+-c：并发次数
+
+-T：content-type
+
+-p：postfile
+
+```bash
+ab -n 1000 -c 100 -p ~/postfile -T application/x-www-form-urlencoded http://192.168.2.115:8081/Seckill/doseckill
+```
+
+Redis事务秒杀案例
+
+连接超时解决方案：使用连接池
+
+超卖解决方案：使用乐观锁
+
+库存遗留问题（乐观锁造成）解决方案：LUA脚本
+
+将复杂的或者多步的redis操作，写为一个脚本，一次提交给redis执行，减少反复连接redis的次数，提升性能。
+
+Lua脚本是类似redis事务，有一定的原子性，不会被其他命令插队，可以完成一些redis事务性的操作。
+
+可以利用lua脚本淘汰用户，解决超卖问题。
+
+加事务——乐观锁解决超卖问题，但是出现了库存遗留问题
+
+```java
+
+public class JedisPoolUtil {
+    private static volatile JedisPool jedisPool = null;
+
+    private JedisPoolUtil() {
+
+    }
+
+    public static JedisPool getJedisPoolInstance(String host, int port, int timeout) {
+        if (null == jedisPool) {
+            synchronized (JedisPoolUtil.class) {
+                if (null == jedisPool) {
+                    JedisPoolConfig poolConfig = new JedisPoolConfig();
+                    poolConfig.setMaxTotal(200);
+                    poolConfig.setMaxIdle(32);
+                    poolConfig.setMaxWaitMillis(100 * 1000);
+                    poolConfig.setBlockWhenExhausted(true);
+                    poolConfig.setTestOnBorrow(true);
+                    jedisPool = new JedisPool(poolConfig, host, port, timeout);
+                }
+            }
+        }
+        return jedisPool;
+    }
+}
+```
+
+```java
+public class SecKill {
+    public static boolean doSecKill(String uid, String productId) {
+        // 1. uid和productId非空判断
+        if (uid == null || productId == null) {
+            return false;
+        }
+        // 2. 连接redis
+        // Jedis jedis = new Jedis("127.0.0.1", 6379);
+        // 通过连接池得到Jedis对象
+        JedisPool jedisPool = JedisPoolUtil.getJedisPoolInstance("127.0.0.1", 6379, 60000);
+        Jedis jedis = jedisPool.getResource();
+        // 3. 拼接key
+        // 3.1 库存key
+        String kcKey = "sk:" + productId + ":qt";
+        // 3.2 秒杀成功用户key
+        String userKey = "sk:" + productId + ":user";
+        // 监视库存
+        jedis.watch(kcKey);
+        // 4. 获取库存，如果库存为null，秒杀还没有开始
+        String kc = jedis.get(kcKey);
+        if (kc == null) {
+            System.out.println("秒杀还没有开始，请等待...");
+            jedis.close();
+            return false;
+        }
+        // 5. 判断用户是否重复做秒杀操作
+        if (jedis.sismember(userKey, uid)) {
+            System.out.println("已经秒杀成功了，不能重复秒杀");
+            jedis.close();
+            return false;
+        }
+        // 6. 如果库存数量小于1，秒杀结束
+        if (Integer.parseInt(kc) < 0) {
+            System.out.println("秒杀已经结束了");
+            jedis.close();
+            return false;
+        }
+        // 7. 秒杀过程
+        // 使用事务
+        Transaction transaction = jedis.multi();
+        // 组队
+        transaction.decr(kcKey);
+        transaction.sadd(userKey, uid);
+        // 执行
+        List<Object> list = transaction.exec();
+        if (list == null || list.size() == 0) {
+            System.out.println("秒杀失败了");
+            jedis.close();
+            return false;
+        }
+        // 7.1 库存减一
+        // jedis.decr(kcKey);
+        // 7.2 把秒杀成功用户添加到清单里面去
+        // jedis.sadd(userKey, uid);
+        System.out.println("秒杀成功");
+        jedis.close();
+        return true;
+    }
+}
+```
+
+解决库存遗留问题：使用Lua脚本
+
+## 持久化
+
+
+
+## 主从复制
+
+## 集群
+
+## 应用问题解决
 
 ## 参考资料
 
