@@ -296,9 +296,438 @@ zset 底层使用了两个数据结构
 
 ## 配置文件
 
+### Units单位
+
+配置文件开头定义了一些基本的度量单位，只支持bytes，不支持bit，大小写不敏感
+
+### 网络相关配置
+
+bind
+
+默认情况bind=127.0.0.1，只能接受本机的访问请求
+
+不写的情况下，无限制接受任何ip地址的访问
+
+生产环境肯定要写你应用服务器的地址，服务器是需要远程访问的，所以需要将其注释掉
+
+如果开启了protected-mode，那么在没有设定bind ip且没有设密码的情况下，Redis只允许接受本机的响应
+
+端口号，默认6379
+
+tcp-backlog
+
+设置tcp的backlog，backlog其实是一个连接队列，backlog队列总和=未完成三次握手队列+已经完成三次握手队列
+
+在高并发环境下，需要一个高的backlog值来避免慢客户连接问题
+
+timeout：超时时间
+
+tcp-keepalive：心跳时间
+
+### 通用配置
+
+daemonize：是否后台启动
+
+pidfile：存放pid文件的位置，每个实例会产生一个不同的pid文件
+
+loglevel：日志级别（debug、verbose、notice、warning）
+
+logfile：日志输出文件的路径
+
+databases：数据库id
+
+### 安全配置
+
+访问密码的查看、设置和取消
+
+在命令中设置的密码，只是临时的，重启Redis服务器，密码就还原了
+
+永久设置，需要在配置文件中进行设置
+
+```bash
+config get requirepass
+
+config set requirepass "123456"
+```
+
+### LIMITS限制
+
+maxclients：设置redis同时可以与多少个客户端进行连接，默认情况下为10000个客户端，如果达到了此限制，redis则会拒绝新的连接请求，并且向这些连接请求发出"max number of clients reached"
+
+maxmemory：建议必须设置，否则，将内存占满，造成服务器宕机
+
+maxmemory-policy：设置移除策略
+
+![image-20220114184354407](assets/image-20220114184354407.png)
+
+maxmemory-samples：设置样本数量，一般设置3到7的数字，数值越小样本越不准确，但性能消耗越小
+
 ## 发布和订阅
 
+Redis发布订阅（pub/sub）是一种消息通信模式：发送者（pub）发送消息，订阅者（sub）接收消息
+
+Redis客户端可以订阅任意数量的频道
+
+![image-20220114185006667](assets/image-20220114185006667.png)
+
+注意：发布的消息没有持久化，只能收到订阅后发布的消息
+
 ## Redis6新数据类型
+
+### Bitmaps
+
+Redis提供了Bitmaps这个“数据类型”可以实现对位的操作
+
+（1）Bitmaps本事不是一种数据类型，实际上它就是字符串（key-value），但是它可以对字符串的位进行操作
+
+（2）Bitmaps单独提供了一套命令，所以在Redis中使用Bitmaps和使用字符串的方法不太相同。可以把Bitmaps看成一个以位为单位的数组，数组的每个单元只能存储0和1，数组的下标在Bitmaps中称作偏移量
+
+在第一次初识化Bitmaps时，假如偏移量非常大，那么整个初始化过程执行会比较慢，可能会造成Redis的阻塞。
+
+命令
+
+```
+setbit <key> <offset> <value> 设置Bitmaps中某个偏移量的值（0或1）offset从0开始
+
+getbit <key> <offset> 获取Bitmaps中某个偏移量的值
+
+bitcount <key> [start end] 统计比特值为1的数量
+
+bitop 是一个复合操作，它可以做多个Bitmaps的and、or、not、xor操作并将结果保存在destkey中
+```
+
+### HyperLogLog
+
+Redis HyperLogLog 是用来做基数统计的算法，HyperLogLog的优点是，在输入元素的数量或体积非常大时，计算基数所需的空间是固定的，并且是很小的。
+
+HyperLogLog只会根据输入元素来计算基数，而不会存储输入元素本身，所以HyperLogLog不能像集合那样，返回输入的各个元素。
+
+命令
+
+```
+pfadd <key> <element> [element...] 添加指定元素到HyperLogLog中，成功返回1，失败返回0
+
+pfcount <key> [key...] 计算HLL的近似基数
+
+pfmerge <key> <sourceKey> [sourceKey...] 将一个或多个HLL合并后的结果存储在另一个HLL中
+```
+
+### Geospatial
+
+Redis 提供了经纬度设置，查询，范围查询，距离查询，经纬度Hash等常见操作
+
+命令
+
+```
+geoadd <key> <longitude> <latitude> <member> [longitude latitude member...] 添加地理位置（经度、纬度、名称）
+
+geopos <key> <member> [member...] 获得指定地区的坐标值
+
+geodist <key> <member1> <member2> [m|km|ft|mi] 获取两个位置之间的直线距离
+
+georadius <key> <longitude> <latitude> radius m|km|ft|mi 以给定的经纬度为中心，找出某一半径内的元素
+```
+
+## Jedis操作Redis6
+
+### Jedis所需的jar包
+
+```xml
+<!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>3.3.0</version>
+</dependency>
+```
+
+### 连接Redis注意事项
+
+禁用Linux的防火墙：Linux（CentOS 7）里执行命令
+
+```bash
+systemctl stop/disable firewalld.service
+```
+
+### 测试连接
+
+```java
+package com.example;
+
+import redis.clients.jedis.Jedis;
+
+public class JedisDemo1 {
+    public static void main(String[] args) {
+        // 创建Jedis对象
+        Jedis jedis = new Jedis("192.168.108.128", 6379);
+        // 测试
+        String ping = jedis.ping();
+        System.out.println(ping);
+    }
+}
+
+```
+
+### Jedis常用操作
+
+操作key
+
+```java
+@Test
+public void demo1() {
+    Jedis jedis = new Jedis("192.168.108.128", 6379);
+    // 添加
+    jedis.set("name", "liuyuhe");
+    // 获取
+    String name = jedis.get("name");
+    System.out.println(name);
+    // 设置多个key
+    jedis.mset("k1", "v1", "k2", "v2");
+    // 获取多个key
+    List<String> strings = jedis.mget("k1", "k2");
+    System.out.println(strings);
+    // 查看key
+    Set<String> keys = jedis.keys("*");
+    for (String key : keys) {
+        System.out.println(key);
+    }
+}
+```
+
+List
+
+```java
+@Test
+public void demo2() {
+    Jedis jedis = new Jedis("192.168.108.128", 6379);
+    jedis.lpush("key1", "v1", "v2", "v3", "v4");
+    List<String> list = jedis.lrange("key1", 0, -1);
+    System.out.println(list);
+}
+```
+
+Set
+
+```java
+@Test
+public void demo3() {
+    Jedis jedis = new Jedis("192.168.108.128", 6379);
+    jedis.sadd("names", "tom", "sam", "jack");
+    Set<String> names = jedis.smembers("names");
+    System.out.println(names);
+}
+```
+
+Hash
+
+```java
+@Test
+public void demo4() {
+    Jedis jedis = new Jedis("192.168.108.128", 6379);
+    jedis.hset("users", "age", "18");
+    String age = jedis.hget("users", "age");
+    System.out.println(age);
+}
+```
+
+Zset
+
+```java
+@Test
+public void demo5() {
+    Jedis jedis = new Jedis("192.168.108.128", 6379);
+    jedis.zadd("china", 100d, "shanghai");
+    jedis.zadd("china", 99d, "beijing");
+    Set<String> china = jedis.zrange("china", 0, -1);
+    System.out.println(china);
+}
+```
+
+### 案例-模拟验证码发送
+
+要求：
+
+1、输入手机号，点击发送后，随机生成6位数字码，2分钟有效
+
+2、输入验证码，点击验证，返回成功或失败
+
+3、每个手机号每天只能输入3次
+
+具体实现：
+
+1、生成随机6位数字验证码，可以使用Java中的Random
+
+2、验证码在2分钟内有效，把验证码放到Redis里面，设置过期时间120秒
+
+3、判断验证码是否一致，从redis获取验证码和输入的验证码进行比较
+
+4、每个手机每天只能发送3次验证码，使用incr操作，每次发送后加一，超过3后，不能再发送
+
+```java
+package com.example;
+
+import redis.clients.jedis.Jedis;
+
+import java.util.Random;
+
+public class PhoneCode {
+    public static void main(String[] args) {
+        // 模拟验证码发送
+        setRedisCode("15866154198");
+        // 校验
+        verifyCode("15866154198", "123456");
+    }
+
+    // 验证码校验
+    public static void verifyCode(String phone, String code) {
+        Jedis jedis = new Jedis("192.168.108.128", 6379);
+        String codeKey = "VerifyCode" + phone + ":code";
+        String redisCode = jedis.get(codeKey);
+        if (redisCode.equals(code)) {
+            System.out.println("验证码正确");
+        } else {
+            System.out.println("验证码错误");
+        }
+    }
+
+    // 每个手机每天只能发送3次，验证码放到redis中，设置过期时间
+    public static void setRedisCode(String phone) {
+        Jedis jedis = new Jedis("192.168.108.128", 6379);
+        String countKey = "VerifyCode" + phone + ":count";
+        String codeKey = "VerifyCode" + phone + ":code";
+        // 每个手机每天只能发送三次
+        String count = jedis.get(countKey);
+        if (count == null) {
+            jedis.setex(countKey, 24*60*60, "1");
+        } else if (Integer.parseInt(count) <= 2) {
+            jedis.incr(countKey);
+        } else if (Integer.parseInt(count) > 2) {
+            System.out.println(phone + ": 今天发送次数已经超过三次");
+            jedis.close();
+            return;
+        }
+        // 验证码放到redis中
+        String vCode = getCode();
+        System.out.println("验证码: " + vCode);
+        jedis.setex(codeKey, 120, vCode);
+        jedis.close();
+    }
+
+    // 生成6位数字验证码
+    public static String getCode() {
+        Random random = new Random();
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            int v = random.nextInt(10);
+            code.append(v);
+        }
+        return code.toString();
+    }
+}
+
+```
+
+## Spring Boot 整合 Redis
+
+引入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-pool2</artifactId>
+</dependency>
+```
+
+redis配置
+
+```yaml
+spring:
+  redis:
+    # Redis服务器地址
+    host: 192.168.108.128
+    # Redis服务器连接端口
+    port: 6379
+    # 数据库索引
+    database: 0
+    # 连接超时时间
+    timeout: 1800000
+    lettuce:
+      pool:
+        # 最大连接数
+        max-active: 20
+        # 最大阻塞时间
+        max-wait: 1
+        # 最大空闲连接
+        max-idle: 5
+        # 最小空闲连接
+        min-idle: 0
+```
+
+添加Redis配置类
+
+```java
+@Configuration
+@EnableCaching
+public class RedisConfig extends CachingConfigurerSupport {
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        RedisSerializer<String> redisSerializer = new StringRedisSerializer();
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+        template.setKeySerializer(redisSerializer);
+        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.setConnectionFactory(factory);
+        return template;
+    }
+
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory factory) {
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+        RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(600))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
+                .disableCachingNullValues();
+        return RedisCacheManager.builder(factory)
+                .cacheDefaults(configuration)
+                .build();
+    }
+}
+```
+
+测试
+
+```java
+@RestController
+@RequestMapping("/redisTest")
+public class RedisTestController {
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @GetMapping
+    public String testRedis() {
+        // 设置值
+        redisTemplate.opsForValue().set("name", "lyh");
+        // 获取值
+        return (String) redisTemplate.opsForValue().get("name");
+    }
+}
+```
+
+
 
 ## 参考资料
 
