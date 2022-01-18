@@ -52,6 +52,7 @@
 ## 中间件
 
 - [Redis学习笔记](中间件/Redis学习笔记.md)
+- [RabbitMQ学习笔记](中间件/RabbitMQ学习笔记.md)
 
 ## 数字图像
 

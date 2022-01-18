@@ -953,17 +953,365 @@ no：redis不主动进行同步，把同步时机交给操作系统
 
 ## 主从复制
 
+主机数据更新后根据配置和策略，自动同步到备机的master/slaver机制，Master以写为主，Slave以读为主。
+
+![image-20220118132334054](assets/image-20220118132334054.png)
+
+1. 读写分离，性能扩展
+2. 容灾的快速恢复
+
+搭建一主两从
+
+```bash
+redis6379.conf
+redis6380.conf
+redis6381.conf
+```
+
+redis6379.conf
+
+```bash
+include /root/myRedis/redis.conf
+pidfile /var/run/redis_6379.pid
+port 6379
+dbfilename dump6379.rdb
+```
+
+redis6380.conf
+
+```bash
+include /root/myRedis/redis.conf
+pidfile /var/run/redis_6380.pid
+port 6380
+dbfilename dump6380.rdb
+```
+
+redis6381.conf
+
+```bash
+include /root/myRedis/redis.conf
+pidfile /var/run/redis_6381.pid
+port 6381
+dbfilename dump6381.rdb
+```
+
+[root@localhost myRedis]# redis-server redis6379.conf 
+[root@localhost myRedis]# redis-server redis6380.conf 
+[root@localhost myRedis]# redis-server redis6381.conf 
+
+````bash
+[root@localhost myRedis]# ps -ef | grep redis
+root      25001      1  0 13:47 ?        00:00:00 redis-server *:6379
+root      25130      1  0 13:47 ?        00:00:00 redis-server *:6380
+root      25211      1  0 13:47 ?        00:00:00 redis-server *:6381
+root      25889   1233  0 13:48 pts/0    00:00:00 grep --color=auto redis
+````
+
+查看当前主机运行状况：info replication
+
+配从不配主：`slaveof <ip> <port> ` 
+
+在从机上执行slaveof 主机ip 端口号
+
+```bash
+[root@localhost myRedis]# redis-cli -p 6379
+127.0.0.1:6379> info replication
+# Replication
+role:master
+connected_slaves:2
+slave0:ip=127.0.0.1,port=6380,state=online,offset=98,lag=1
+slave1:ip=127.0.0.1,port=6381,state=online,offset=98,lag=0
+master_failover_state:no-failover
+master_replid:4cd5ad94afe407ed3cbdb921ebda0d9a2d6dd02f
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:98
+second_repl_offset:-1
+repl_backlog_active:1
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:1
+repl_backlog_histlen:98
+127.0.0.1:6379> 
+```
+
+常用3招：
+
+- 一主二仆
+
+- 薪火相传
+
+- 反客为主
+
+复制原理
+
+1. Slave启动成功连接到master后会发送一个sync命令
+2. Master接到命令启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令，在后台进程执行完毕之后，master将传送整个数据文件到slave，来完成一次完全同步
+3. 全量复制：slave服务在接收到数据库文件数据后，将其存盘并加载到内存中
+4. 增量复制：Master继续将新的所有收集到的修改命令依次传给slave完成同步
+5. 只要是重新连接master，一次完全同步（全量复制）将被自动执行
+
+![image-20220118140822746](assets/image-20220118140822746.png)
+
+
+
+哨兵模式
+
+![image-20220118141422392](assets/image-20220118141422392.png)
+
+反客为主的自动版，能够后台监控主机是否故障，如果故障了根据投票数自动将从升级为主。
+
+```bash
+sentinel monitor master 127.0.0.1 6379 1
+```
+
+其中，master为监控对象起的服务器名称，1为至少有多少个哨兵同意迁移的数量。
+
+当主机挂掉，从机选举出新的主机，原主机重启后会变成从机。
+
+![image-20220118145910190](assets/image-20220118145910190.png)
+
+优先级在redis.conf中默认：replica-priority 100 ，值越小优先级越高
+
+偏移量是指获得原主机数据最全的
+
+每个redis实例启动后都会随机生成一个40位的runid
+
 ## 集群
+
+Redis集群实现了对Redis的水平扩容，即启动N个redis节点，将整个数据库分布存储在这N个节点中，每个节点存储总数据的1/N。
+
+Redis集群通过分区（partition）来提供一定程度的可用性（availability）：即使集群中有一部分节点失效或者无法进行通讯，集群也可以继续处理命令请求。
+
+搭建Redis集群
+
+![image-20220118151429760](assets/image-20220118151429760.png)
+
+redis cluster配置
+
+```bash
+# 打开集群模式
+cluster-enabled yes
+# 设定节点配置文件名
+cluster-config-file nodes-6379.conf
+# 设定节点失联时间，超时该时间（毫秒），集群自动进行主从切换
+cluster-node-timeout 15000
+```
+
+```bash
+[root@localhost myRedis]# ll
+总用量 116
+-rw-r--r-- 1 root root   322 1月  18 15:20 redis6379.conf
+-rw-r--r-- 1 root root   322 1月  18 15:22 redis6380.conf
+-rw-r--r-- 1 root root   322 1月  18 15:22 redis6381.conf
+-rw-r--r-- 1 root root   322 1月  18 15:22 redis6389.conf
+-rw-r--r-- 1 root root   322 1月  18 15:22 redis6390.conf
+-rw-r--r-- 1 root root   322 1月  18 15:22 redis6391.conf
+-rw-r--r-- 1 root root 93726 1月  18 13:34 redis.conf
+```
+
+启动6个Redis服务
+
+```bash
+[root@localhost myRedis]# ps -ef | grep redis
+root      16718      1  0 15:30 ?        00:00:00 redis-server *:6379 [cluster]
+root      17142      1  0 15:30 ?        00:00:00 redis-server *:6380 [cluster]
+root      17538      1  0 15:31 ?        00:00:00 redis-server *:6381 [cluster]
+root      18127      1  0 15:31 ?        00:00:00 redis-server *:6389 [cluster]
+root      18523      1  0 15:32 ?        00:00:00 redis-server *:6390 [cluster]
+root      18858      1  3 15:32 ?        00:00:00 redis-server *:6391 [cluster]
+root      18970   1233  0 15:32 pts/0    00:00:00 grep --color=auto redis
+```
+
+将6个节点合成一个集群
+
+```bash
+redis-cli --cluster create --cluster-replicas 1 192.168.108.128:6379 192.168.108.128:6380 192.168.108.128:6381 192.168.108.128:6389 192.168.108.128:6390 192.168.108.128:6391
+```
+
+--cluster-replicas 1 采用最简单的方式配置集群，一台主机，一台从机，正好三组
+
+```bash
+[OK] All 16384 slots covered.
+```
+
+-c 采用集群策略连接，设置数据会自动切换到相应的写主机
+
+```bash
+redis-cli -c -p 6379
+```
+
+查看集群信息：cluster nodes
+
+分配原则尽量保证每个主数据库运行在不同的IP地址，每个从库和主库不在一个IP地址上。
+
+一个Redis集群包含16384个插槽（hash slot），数据库中的每个键都属于这16384个插槽的其中一个
+
+集群使用公式`CRC16(key) % 16384`来计算键key属于哪个槽
+
+集群中的每个节点负责处理一部分插槽
+
+集群的Jedis开发
+
+即使连接的不是主机，集群会自动切换主机存储，主机写，从机读。
+
+无中心化主从集群，无论从哪台主机写的数据，其他主机上都能读取到数据。
+
+```java
+public class RedisClusterTest {
+    public static void main(String[] args) {
+        HostAndPort hostAndPort = new HostAndPort("192.168.108.128", 6379);
+        JedisCluster jedisCluster = new JedisCluster(hostAndPort);
+        jedisCluster.set("name", "lyh");
+        String name = jedisCluster.get("name");
+        System.out.println(name);
+        jedisCluster.close();
+    }
+}
+```
+
+Redis集群的不足：
+
+多建操作是不被支持的
+
+多键的Redis事务是不被支持的，lua脚本不被支持
 
 ## 应用问题解决
 
 ### 缓存穿透
 
+![image-20220118163013395](assets/image-20220118163013395.png)
+
+现象：
+
+1. 应用服务器压力变大
+2. Redis命中率降低
+3. 一直查询数据库
+
+解决方案：
+
+（1）对空值缓存
+
+（2）设置可访问的名单（白名单）
+
+（3）采用布隆过滤器
+
+（4）进行实时监控
+
 ### 缓存击穿
+
+![image-20220118163902370](assets/image-20220118163902370.png)
+
+现象：
+
+- 数据库访问压力瞬时增加
+- redis里面没有出现大量key过期
+- redis正常运行
+
+redis某个key过期了，大量访问使用这个key（热门key）
+
+解决方案：
+
+- 预先设置热门数据
+- 实时调整
+- 使用锁
 
 ### 缓存雪崩
 
+key对应的数据存在，但在redis中过期，此时若有大量并发请求过来，这些请求发现缓存过期一般都会从后端DB加载数据并回设到缓存，这个时候大并发的请求可能会瞬间把后端DB压垮。
+
+缓存雪崩与缓存击穿的区别在于这里针对很多key缓存，前者则是某一个key
+
+![image-20220118164710991](assets/image-20220118164710991.png)
+
+现象：数据库压力变大，服务器崩溃
+
+在极少时间段，查询大量的key集中过期
+
+解决方案：
+
+- 构建多级缓存架构
+- 使用锁或队列
+- 设置过期标志更新缓存
+- 将缓存失效时间分散开
+
 ### 分布式锁
+
+分布式锁主流的实现方案：
+
+1. 基于数据库实现分布式锁
+2. 基于缓存（Redis等）
+3. 基于Zookeeper
+
+每一种分布式锁解决方案都有各自的优缺点：
+
+1. 性能：Redis最高
+2. 可靠性：zookeeper最高
+
+解决方案：使用redis实现分布式锁
+
+redis命令：
+
+```bash
+set sku:1:info "OK" NX PX 10000
+```
+
+使用setnx上锁，通过del释放锁
+
+锁一直没有释放，设置key的过期时间，自动释放
+
+上锁之后突然出现异常，无法设置过期时间了（解决方法：上锁的时候同时设置过期时间 set users nx ex 12）
+
+可以使用UUID来防止锁被误删
+
+如何解决删除的原子性问题？
+
+使用lua脚本来保证删除的原子性
+
+具体操作：
+
+1. 加锁
+2. 使用lua释放锁
+3. 重试
+
+为了保证分布式锁可用，我们至少要确保锁的实现同时满足以下四个条件：
+
+- 互斥性，在任意时刻，只有一个客户端能持有锁
+- 不会发生死锁
+- 解铃还须系铃人，加锁和解锁必须是同一个客户端，客户端自己不能把别人加的锁给解了
+- 加锁和解锁必须具有原子性
+
+## Redis6新功能
+
+### ACL
+
+Redis ACL是访问控制列表的缩写，该功能允许根据可以执行的命令和可以访问的键来限制某些连接
+
+提供ACL的功能对用户进行更细粒度的权限控制：
+
+（1）接入权限：用户名和密码
+
+（2）可以执行的命令
+
+（3）可以操作的KEY
+
+参考官网：[https://redis.io/topics/acl](https://redis.io/topics/acl)
+
+acl list：展示用户权限列表
+
+acl cat：查看添加权限指令类别
+
+acl whoami：查看当前用户
+
+……
+
+### IO多线程
+
+IO多线程其实指客户端交互部分的网络IO 交互处理模块多线程，而非执行命令多线程
+
+### 工具支持Cluster
+
+之前老版本Redis想要搭建集群需要单独安装ruby环境，Redis5将redis-trib.rb的功能集成到redis-cli。
+
+另外官方的redis-benchmark工具开始支持cluster模式了，通过多线程的方式对多个分片进行压测。
 
 ## 参考资料
 
