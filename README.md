@@ -22,27 +22,20 @@
 
 - [大话设计模式](设计模式/大话设计模式.md)
 
-## React
-
-- [React学习笔记](React/React学习笔记.md)
-
-## Vue
-
-- [Vue学习笔记](Vue/Vue学习笔记.md)
-
 ## Java
 
-- [Java基础](Java/Java基础.md)
+- [JAVA基础](Java/Java基础.md)
 
-- [Java 8](Java/Java8.md)
+- [JAVA 8 新特性](Java/Java8.md)
 
-## Go
+## Golang
 
 - [Go语言基础](Go/Go语言基础.md)
 
-## BloomFilter
+## 前端开发
 
-- [布隆过滤器](BloomFilter/布隆过滤器.md)
+- [Vue学习笔记](Vue/Vue学习笔记.md)
+- [React学习笔记](React/React学习笔记.md)
 
 ## 大数据
 
@@ -53,8 +46,9 @@
 
 - [Redis学习笔记](中间件/Redis学习笔记.md)
 - [RabbitMQ学习笔记](中间件/RabbitMQ学习笔记.md)
+- [布隆过滤器](BloomFilter/布隆过滤器.md)
 
-## 数字图像
+## 数字图像处理
 
 - [Matlab图像处理](数字图像/Matlab图像处理.md)
 
