@@ -1,4 +1,4 @@
-![](_coverpage.assets/favicon.ico)
+![](assets/favicon.ico)
 
 # My - Notes
 
