@@ -146,3 +146,126 @@ hashCode() 的作用是获取哈希码，返回一个int整数，哈希码的作
 - 两个对象相等，对两个对象分别调用equals方法都返回true
 - 两个对象有相同的hashcode值，它们也不一定是相等的
 
+### 为什么重写equals方法必须重写hashcode方法？
+
+判断的时候先根据hashcode进行判断，相同的情况下再根据equals()方法进行判断。如果只是重写equals方法，而不重写hashcode方法，会造成hashcode的值不同，而equals()方法判断出来的结果为true。
+
+在Java中的一些容器中，不允许有两个完全相同的对象，插入的时候，如果判断相同则会进行覆盖。这时候如果只是重写了equals()方法，而不重写hashcode方法，Object中hashcode是根据对象的存储地址转换而形成的一个哈希值。这时候就有可能因为没有重写hashcode方法，造成相同的对象散列到不同的位置而造成对象的不能覆盖的问题。
+
+## String相关
+
+### String为什么要设计成不可变的？
+
+1. 便于实现字符串池
+2. 使多线程安全
+3. 避免安全问题
+4. 加快字符串处理速度
+
+总体来说，String不可变的原因包括 设计考虑，效率优化，以及安全性这三大方面。
+
+### String，StringBuffer，StringBuilder 的区别是什么？
+
+可变与不可变
+
+String类中使用字符数组保存字符串，因为有final修饰符，所以String对象是不可变。对于已经存在的String对象的修改都是重新创建一个新的对象，然后再把新的值保存进去。
+
+```java
+private final char value[];
+```
+
+StringBuilder与StringBuffer都继承自AbstractStringBuilder类，在AbstractStringBuilder中也是使用字符数组保存字符串，这两种对象都是可变的。
+
+```java
+char[] value;
+```
+
+是否线程安全
+
+String对象是不可变的，显然是线程安全的
+
+StringBuilder是非线程安全的
+
+StringBuffer对方法加了同步锁或者对调用的方法加了同步锁，所以是线程安全的
+
+```java
+@Override
+public synchronized StringBuffer append(String str) {
+    toStringCache = null;
+    super.append(str);
+    return this;
+}
+```
+
+性能
+
+每次对String类型进行改变的时候，都会生成一个新的String对象，然后将指针指向新的String对象。
+
+StringBuffer每次对StringBuffer对象本身进行操作，而不是生成新的对象并改变对象的引用。
+
+相同情况下，使用StringBuilder相比使用StringBuffer仅能获得 `10% ~ 15%` 左右的性能提升，但是却要冒着线程不安全的风险。
+
+### 字符型常量和字符串常量的区别？
+
+字符常量是单引号引起的一个字符，字符串常量是双引号引起的若干个字符
+
+字符常量相当于一个整型值（ASCII），可以参加表达式运算，字符串常量代表一个地址值（该字符串在内存中存放位置，相当于对象）
+
+字符常量占2个字节（char在Java中占两个字节），字符串常量占若干个字节（至少一个字符结束标志）
+
+### String有哪些特性？
+
+- 不变性：String是只读字符串，可以保证数据的一致性
+- 常量池优化：String对象创建之后，会在字符串常量池中进行缓存，如果下次创建同样的对象时，会直接返回缓存的引用
+- final：使用final来定义String类，表示String类不能被继承，提高了系统的安全性
+
+### HashMap中用String做key有什么好处？
+
+HashMap内部实现是通过key的hashcode来确定value的存储位置，因为字符串是不可变的，所以当创建字符串时，它的hashcode被缓存下来，不需要再次计算，所以相比于其他对象更快。
+
+## 包装类型
+
+### 基本类型与包装类型的区别？
+
+Java 为每一个基本数据类型都引入了对应的包装类型，int的包装类是Integer，从Java5开始引入了自动装箱/拆箱机制，把基本类型转换成包装类型的过程叫做装箱（boxing），反之，把包装类型转换成基本类型的过程叫做拆箱（unboxing），使得二者可以相互转换。
+
+Java为每个基本类型提供了包装类型
+
+| 基本类型 | 包装类型  |
+| -------- | --------- |
+| boolean  | Boolean   |
+| char     | Character |
+| byte     | Byte      |
+| short    | Short     |
+| int      | Integer   |
+| long     | Long      |
+| float    | Float     |
+| double   | Double    |
+
+包装类型可以为null，而基本类型不可以
+
+包装类型可以用于泛型，而基本类型不可以
+
+基本类型比包装类型更高效
+
+### int和Integer的区别？
+
+- Integer是int的包装类，int是基本数据类型
+- Integer变量必须实例化后才能使用，int变量不需要
+- Integer实际是对象的引用，指向此new的Integer对象，int是直接存储数据值
+- Integer默认值是null，int的默认值是0
+
+## 反射
+
+### 什么是反射？
+
+反射是在运行状态中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意一个方法和属性；这种动态获取的信息以及动态调用对象的方法的功能称为Java语言的反射机制。
+
+
+
+## 泛型
+
+## 序列化
+
+## 异常
+
+## IO
