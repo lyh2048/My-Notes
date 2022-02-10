@@ -34,6 +34,7 @@
 - Spring Boot
 - Spring MVC
 - Spring Cloud
+- Spring Cloud Alibaba
 
 ## Dubbo
 
