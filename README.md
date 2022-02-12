@@ -28,6 +28,7 @@
 - [JAVA 8 新特性](Java/Java8.md)
 - [Java并发编程](Java/JavaConcurrency.md)
 - [Java工程结构](Java/Java工程结构.md)
+- [Java中间件](Java/Java中间件.md)
 
 ## Spring系列框架
 
@@ -62,6 +63,7 @@
 - [Redis学习笔记](中间件/Redis学习笔记.md)
 - [RabbitMQ学习笔记](中间件/RabbitMQ学习笔记.md)
 - [布隆过滤器](BloomFilter/布隆过滤器.md)
+- [Zookeeper从入门到精通](中间件/Zookeeper学习笔记.md)
 
 ## 云原生
 
@@ -71,6 +73,7 @@
 
 - [Java基础——常见面试题总结](面试题/Java基础常见面试题总结.md)
 - [【牛客论坛】常见面试题](面试题/常见面试题-牛客论坛.md)
+- [Zookeeper面试重点](面试题/Zookeeper面试重点.md)
 
 ## 数字图像处理
 
@@ -87,3 +90,4 @@
 ## 其他
 
 - ……
+
