@@ -47,6 +47,7 @@
 ## Netty
 
 - [Netty学习笔记（一）](Netty/Netty学习笔记1.md)
+- [Netty学习笔记（二）](Netty/Netty学习笔记2.md)
 
 ## Golang
 
