@@ -48,6 +48,7 @@
 
 - [Netty学习笔记（一）](Netty/Netty学习笔记1.md)
 - [Netty学习笔记（二）](Netty/Netty学习笔记2.md)
+- [Netty学习笔记（三）](Netty/Netty学习笔记3.md)
 
 ## Golang
 
@@ -60,14 +61,14 @@
 
 ## 大数据
 
-- [大数据技术原理与应用](BigData/大数据技术原理与应用.md)
-- [快学Scala](BigData/快学Scala.md)
+- [大数据技术原理与应用](大数据/大数据技术原理与应用.md)
+- [快学Scala](大数据/快学Scala.md)
 
 ## 中间件
 
 - [Redis学习笔记](中间件/Redis学习笔记.md)
 - [RabbitMQ学习笔记](中间件/RabbitMQ学习笔记.md)
-- [布隆过滤器](BloomFilter/布隆过滤器.md)
+- [布隆过滤器](中间件/布隆过滤器.md)
 - [Zookeeper从入门到精通](中间件/Zookeeper学习笔记.md)
 
 ## 云原生
