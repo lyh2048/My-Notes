@@ -75,11 +75,11 @@
 
 - [云原生学习笔记（一）](云原生/云原生学习笔记1.md)
 
-## 面试题
+## 面试
 
-- [Java基础——常见面试题总结](面试题/Java基础常见面试题总结.md)
-- [【牛客论坛】常见面试题](面试题/常见面试题-牛客论坛.md)
-- [Zookeeper面试重点](面试题/Zookeeper面试重点.md)
+- [Java基础——常见面试题总结](面试/Java基础常见面试题总结.md)
+- [【牛客论坛】常见面试题](面试/常见面试题-牛客论坛.md)
+- [Zookeeper面试重点](面试/Zookeeper面试重点.md)
 
 ## 数字图像处理
 
@@ -92,8 +92,4 @@
 - [哔哩哔哩视频下载工具](https://github.com/lyh2048/bilibili_video)
 - [基于Spring Boot的博客系统](https://github.com/lyh2048/SimpleBlog)
 - [牛客论坛](https://github.com/lyh2048/nowcoder-community)
-
-## 其他
-
-- ……
-
+- [基于Netty的RPC框架](https://github.com/lyh2048/lyh_rpc)
