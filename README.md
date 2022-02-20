@@ -32,12 +32,7 @@
 
 ## Spring系列框架
 
-- Spring
-- Spring MVC
-- Spring Boot
-- Spring Cloud
-- Spring Cloud Alibaba
-- ……
+- [SpringBoot自动配置原理](SpringAll/SpringBoot自动配置原理.md)
 
 ## Dubbo
 
@@ -78,6 +73,7 @@
 ## 面试
 
 - [Java基础——常见面试题总结](面试/Java基础常见面试题总结.md)
+- [分布式相关面试题汇总](面试/分布式相关面试题汇总.md)
 - [【牛客论坛】常见面试题](面试/常见面试题-牛客论坛.md)
 - [Zookeeper面试重点](面试/Zookeeper面试重点.md)
 
