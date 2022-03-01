@@ -959,13 +959,224 @@ subplot(1, 3, 3), imshow(I2, []);
 
 ### 边缘检测
 
+```matlab
+% 处理结果 = edge(原始图像, 算子)
+% 算子：
+% Sobel log Roberts Canny Prewitt zerocross
+```
+
+```matlab
+I = imread('in/lena.bmp');
+J1 = edge(I, 'Sobel');
+subplot(3, 3, 1), imshow(I);
+title('原始图像');
+subplot(3, 3, 2), imshow(J1);
+title('Sobel检测图像');
+J2 = edge(I, 'roberts');
+subplot(3, 3, 3), imshow(J2);
+title('Roberts检测图像');
+J3 = edge(I, 'prewitt');
+subplot(3, 3, 4), imshow(J3);
+title('Prewitt检测图像');
+J4 = edge(I, 'log');
+subplot(3, 3, 5), imshow(J4);
+title('log检测图像');
+J5 = edge(I, 'canny');
+subplot(3, 3, 6), imshow(J5);
+title('Canny检测图像');
+J6 = edge(I, 'zerocross');
+subplot(3, 3, 7), imshow(J6);
+title('zerocross检测图像');
+```
+
 
 
 ### 形态学变换
+
+![img](assets/1918149-20200511105237188-664133061.png)
+
+1）腐蚀
+
+```matlab
+% 腐蚀
+I = imread('in/lena.bmp');
+se = strel('disk', 3);
+J = imerode(I, se);
+subplot(1, 2, 1), imshow(I);
+subplot(1, 2, 2), imshow(J);
+```
+
+
+
+2）膨胀
+
+```matlab
+% 膨胀
+I = imread('in/lena.bmp');
+se = strel('disk', 3);
+J = imdilate(I, se);
+subplot(1, 2, 1), imshow(I);
+subplot(1, 2, 2), imshow(J);
+```
+
+
+
+3）开运算
+
+先腐蚀，后膨胀
+
+A被B形态学开运算表示为：`A·B`
+
+A被B腐蚀，再用B膨胀
+
+```matlab
+% 开运算
+I = imread('in/lena.bmp');
+se = strel('square', 3);
+J = imopen(I, se);
+subplot(121), imshow(I);
+subplot(122), imshow(J);
+```
+
+
+
+4）闭运算
+
+先膨胀，后腐蚀
+
+A被B形态学闭运算表示为：`A·B`
+
+A被B膨胀，再用B腐蚀
+
+```matla
+% 闭运算
+I = imread('in/lena.bmp');
+se = strel('square', 3);
+J = imclose(I, se);
+subplot(121), imshow(I);
+subplot(122), imshow(J);
+```
 
 
 
 ### 图像增强
 
+1）直方图
+
+```matlab
+% 直方图
+I = imread('in/lena.bmp');
+imhist(I);
+% 均衡化
+J = histeq(I);
+subplot(221), imshow(I);
+subplot(222), imshow(J);
+subplot(223), imhist(J);
+```
+
+2）灰度变换
+
+```matlab
+% 结果 = imadjust(原始图像, [原值范围], [新值范围])
+% 原始图像：自动切换到值在[0, 1]
+% [原值范围]：[值1, 值2]
+% [新值范围]：[值3， 值4]
+```
+
+```matlab
+% 灰度变换
+I = imread('in/lena.bmp');
+J1 = imadjust(I, [0.3 0.7], [0 1]);
+J2 = imadjust(I, [0 1], [1 0]);
+subplot(131), imshow(I);
+subplot(132), imshow(J1);
+subplot(133), imshow(J2);
+```
 
 
+
+3）灰度对数变换
+
+```matlab
+% 增强一幅图像中较暗部分的细节
+% 目标图像 = log(原始图像);
+% J = log(im2double(I) + 1);
+```
+
+```matlab
+% 灰度对数变换
+I = imread('in/lena.bmp');
+J = log(im2double(I)+10);
+subplot(121), imshow(I);
+subplot(122), imshow(J, []);
+```
+
+
+
+4）中值滤波
+
+```matlab
+% 中值滤波
+I = imread('in/lena.bmp');
+J = medfilt2(I);
+subplot(121), imshow(I);
+subplot(122), imshow(J);
+```
+
+### JPEG压缩
+
+imwrite(原始图像, 目标图像, 'quality', 比率)
+
+比率：[0, 100] 值越小，压缩比率越大
+
+```matlab
+I = imread('in/lena_std.tif');
+imwrite(I, 'out/lena_std_quality_10.jpg', 'quality', 10);
+J = imread('out/lena_std_quality_10.jpg');
+subplot(121), imshow(I);
+subplot(122), imshow(J);
+```
+
+
+
+### 类型转换
+
+1）RGB转灰度
+
+灰度图像 = rgb2gray(RGB图像)
+
+```matlab
+% RGB转灰度
+I = imread('in/lena_std.tif');
+J = rgb2gray(I);
+subplot(121), imshow(I);
+subplot(122), imshow(J);
+```
+
+
+
+2）灰度图像二值化
+
+二值图像 = imbinarize(灰度图像)
+
+```matlab
+% 灰度图像二值化
+I = imread('in/lena.bmp');
+J = imbinarize(I);
+subplot(121), imshow(I);
+subplot(122), imshow(J);
+```
+
+
+
+### 图像滤波
+
+### 图像裁剪
+
+### 噪声
+
+### 图像抖动
+
+### 数字水印
+
+### 图像融合
