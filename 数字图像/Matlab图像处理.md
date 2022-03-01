@@ -1171,12 +1171,220 @@ subplot(122), imshow(J);
 
 ### 图像滤波
 
+![img](assets/1918149-20200513000332550-1254754285.png)
+
+1. 使用`fspecial`函数创建二维滤波器
+2. 使用`imfilter`函数进行滤波
+
+```matlab
+I = imread('in\lena.bmp');
+subplot(331), imshow(I), title('原始图像');
+% 均值滤波
+fs1 = fspecial('average');
+J1 = imfilter(I, fs1);
+subplot(332), imshow(J1), title('average');
+% 圆形邻域
+fs2 = fspecial('disk');
+J2 = imfilter(I, fs2);
+subplot(333), imshow(J2), title('disk');
+% 高斯
+fs3 = fspecial('gaussian');
+J3 = imfilter(I, fs3);
+subplot(333), imshow(J3), title('gaussian');
+% 高斯-拉普拉斯
+fs4 = fspecial('log');
+J4 = imfilter(I, fs4);
+subplot(334), imshow(J4), title('log');
+% 拉普拉斯
+fs5 = fspecial('laplacian');
+J5 = imfilter(I, fs5);
+subplot(335), imshow(J5), title('laplacian');
+% motion模板
+fs6 = fspecial('motion');
+J6 = imfilter(I, fs6);
+subplot(336), imshow(J6), title('motion模板');
+% prewitt模板
+fs7 = fspecial('prewitt');
+J7 = imfilter(I, fs7);
+subplot(337), imshow(J7), title('prewitt模板');
+% sobel模板
+fs8 = fspecial('sobel');
+J8 = imfilter(I, fs8);
+subplot(338), imshow(J8), title('sobel模板');
+```
+
+
+
 ### 图像裁剪
+
+处理结果 = imcrop(原始图像, 裁剪区域)
+
+裁剪区域：[xmin, ymin, width, height]
+
+```matlab
+% 图像裁剪
+I = imread('in/lena_std.tif');
+[x, y] = size(I);
+subplot(231), imshow(I);
+% 裁剪左上角
+J1 = imcrop(I, [0, 0, 100, 100]);
+subplot(232), imshow(J1);
+% 裁剪右上角
+J2 = imcrop(I, [156, 0, 100, 100]);
+subplot(233), imshow(J2);
+% 裁剪左下角
+J3 = imcrop(I, [0, 156, 100, 100]);
+subplot(234), imshow(J3);
+% 裁剪右下角
+J4 = imcrop(I, [156, 156, 100, 100]);
+subplot(235), imshow(J4);
+% 裁剪中间
+J5 = imcrop(I, [128, 128, 50, 50]);
+subplot(236), imshow(J5);
+```
+
+
 
 ### 噪声
 
+![img](assets/1918149-20200513121749024-1903375362.png)
+
+结果 = imnoise(原始图像, 噪声类型)
+
+```matlab
+% 高斯噪声
+I = imread('in/lena_std.tif');
+subplot(331), imshow(I);
+J1 = imnoise(I, 'gaussian', 0.01, 0.1);
+subplot(332), imshow(J1);
+% localvar噪声——类型1
+J2 = imnoise(I, 'localvar', ones(size(I))*0.01);
+subplot(333), imshow(J2);
+% localvar噪声——类型2
+J3 = imnoise(I, 'localvar', rand(1, 100), ones(1, 100));
+subplot(334), imshow(J3);
+% 泊松噪声
+J4 = imnoise(I, 'poisson');
+subplot(335), imshow(J4);
+% 椒盐噪声
+J5 = imnoise(I, 'salt & pepper');
+subplot(336), imshow(J5);
+% speckle噪声
+J6 = imnoise(I, 'speckle');
+subplot(337), imshow(J6);
+```
+
+
+
 ### 图像抖动
+
+处理结果 = dither(原始图像)
+
+```matlab
+I = imread('in/lena.bmp');
+subplot(121), imshow(I);
+J = dither(I);
+subplot(122), imshow(J);
+```
+
+
 
 ### 数字水印
 
+![img](assets/1918149-20200513212011675-680507623.png)
+
+嵌入：
+
+含水印图像 = Bitset(载体图像, 嵌入位置, 待嵌入信息)
+
+提取：
+
+水印图像 = Bitget(含水印载体图像, 提取信息的位置)
+
+```matlab
+% 嵌入
+o = imread('in/lena.bmp');
+w = imread('out/sdust_512.jpg');
+ow = bitset(o, 1, w);
+subplot(221), imshow(o, []), title('原始载体图像');
+subplot(222), imshow(w, []), title('水印图像');
+subplot(223), imshow(ow, []), title('含水印的载体图像');
+% 提取
+wGet = bitget(ow, 1);
+subplot(224), imshow(wGet, []), title('提取的水印图像');
+```
+
+![image-20220301205704822](assets/image-20220301205704822.png)
+
 ### 图像融合
+
+1）加法融合
+
+```matlab
+% 加法融合
+o1 = imread('in/lena.bmp');
+o2 = imread('out/sdust_512.jpg');
+r = o1*0.6+o2*0.4;
+subplot(131), imshow(o1);
+subplot(132), imshow(o2);
+subplot(133), imshow(r);
+```
+
+
+
+2）小波融合
+
+![img](assets/1918149-20200513220708469-1354448797.png)
+
+```matlab
+% 小波融合
+o1 = imread('in/lena.bmp');
+o2 = imread('out/sdust_512.jpg');
+% 正向小波分解
+[o1c, o1s] = wavedec2(o1, 1, 'haar');
+[o2c, o2s] = wavedec2(o2, 1, 'haar');
+% 小波层面融合
+rw = o1c+o2c;
+% 逆向小波分解
+result = waverec2(rw, o1s, 'haar');
+% 显示
+subplot(131), imshow(o1);
+subplot(132), imshow(o2);
+subplot(133), imshow(result, []);
+```
+
+
+
+3）小波大数融合
+
+```matlab
+% 小波大数融合
+a = imread('in/lena.bmp');
+b = imread('out/sdust_512.jpg');
+% 正向小波分解
+[Ca, Sa] = wavedec2(a, 3, 'haar');
+[Cb, Sb] = wavedec2(b, 3, 'haar');
+
+Ra = zeros(size(Ca));
+
+for i = 1:size(Ca, 2)
+    if Ca(i) > Cb(i)
+        Ra(i) = Ca(i);
+    else
+        Ra(i) = Cb(i);
+    end
+end
+
+result = waverec2(Ra, Sa, 'haar');
+
+subplot(131), imshow(a);
+subplot(132), imshow(b);
+subplot(133), imshow(result);
+```
+
+## 参考资料
+
+[https://www.cnblogs.com/fengxb1213/category/1644618.html](https://www.cnblogs.com/fengxb1213/category/1644618.html)
+
+[https://ww2.mathworks.cn/help/?s_tid=hp_ff_l_doc](https://ww2.mathworks.cn/help/?s_tid=hp_ff_l_doc)
+
