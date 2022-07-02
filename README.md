@@ -8,7 +8,7 @@
 
 - [🔥  LeetCode 热题 HOT 100](数据结构与算法/LeetCode热题100.md)
 - [常用数据结构总结（Java版）](数据结构与算法/常用数据结构总结-Java版.md)
-- [十大经典排序算法](https://github.com/lyh2048/sort)
+- [常用排序算法总结](数据结构与算法/排序算法.md)
 - [Fisher–Yates shuffle 洗牌算法](数据结构与算法/Fisher–Yates洗牌算法.md)
 
 ## 设计模式
